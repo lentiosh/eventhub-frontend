@@ -5,6 +5,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import GoogleCallback from './pages/GoogleCallback';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import CreateEvent from './pages/CreateEvent';
 import EditEvent from './pages/EditEvent';
 import EventList from './pages/EventList'; 
@@ -34,6 +35,7 @@ const App = () => {
           </Route>
         </Routes>
       </div>
+      <Footer />
     </>
   );
 };
