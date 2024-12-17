@@ -1,4 +1,3 @@
-// src/pages/EventDetails.jsx
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { fetchEventById, signUpForEvent, addEventToGoogleCalendar } from '../api/eventApi';
 import { useParams, Link, useNavigate } from 'react-router-dom';

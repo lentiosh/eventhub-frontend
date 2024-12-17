@@ -5,10 +5,8 @@ import axios from 'axios';
 import useAuthStore from '../store/authStore';
 import { FcGoogle } from 'react-icons/fc'; 
 
-const API_URL = 'http://localhost:8080'; 
-
 const loginUser = async ({ email, password }) => {
-  const response = await axios.post(`${API_URL}/auth/login`, {
+  const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, {
     email,
     password,
   });
@@ -39,7 +37,7 @@ const Login = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `${API_URL}/auth/google`;
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
   };
 
   return (
