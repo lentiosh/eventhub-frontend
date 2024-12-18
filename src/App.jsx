@@ -11,6 +11,7 @@ import EditEvent from './pages/EditEvent';
 import EventList from './pages/EventList'; 
 import EventDetails from './pages/EventDetails';
 import StaffRoute from './components/StaffRoute'; 
+import PrivacyPolicy from './components/PrivacyPolicy';
 
 const App = () => {
   return (
@@ -26,6 +27,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/auth/google" element={<GoogleCallback />} /> 
+          <Route path="/privacy" element={<PrivacyPolicy />} />
           
           {/* Protected routes */}
           <Route element={<StaffRoute />}>

@@ -20,8 +20,8 @@ const Footer = () => {
           <Link to="/contact" className="hover:text-link-color transition-colors">
             Contact
           </Link>
-          <Link to="/faq" className="hover:text-link-color transition-colors">
-            FAQ
+          <Link to="/privacy" className="hover:text-link-color transition-colors">
+          Privacy Policy
           </Link>
         </nav>
 
