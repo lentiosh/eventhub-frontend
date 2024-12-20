@@ -1,32 +1,45 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
 import useAuthStore from '../store/authStore';
-import { HiOutlineUser, HiOutlineMail, HiOutlineLockClosed } from 'react-icons/hi';
-import { FcGoogle } from 'react-icons/fc'; 
+import { HiOutlineMail, HiOutlineLockClosed, HiOutlineUser } from 'react-icons/hi';
+import { FcGoogle } from 'react-icons/fc';
+import apiClient from '../api/apiClient';
 
+const baseURL = apiClient.defaults.baseURL;
 
-const registerUser = async ({ name, email, password }) => {
-  const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/register`, {
-    name,
-    email,
-    password,
-  });
-  return response.data;
-};
+const inputClasses = `
+  w-full px-4 py-3 pl-11 
+  bg-background-alt-color text-text-color
+  border-2 border-transparent
+  rounded-xl
+  placeholder-text-alt-color
+  focus:outline-none focus:border-link-color
+  transition-all duration-300
+`;
+
+const buttonClasses = `
+  w-full py-3.5 px-6
+  flex items-center justify-center
+  text-sm font-medium
+  rounded-2xl
+  transition-all duration-300
+  focus:outline-none focus:ring-2 focus:ring-offset-2 
+`;
 
 const Register = () => {
   const navigate = useNavigate();
   const setToken = useAuthStore((state) => state.setToken);
-
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const mutation = useMutation({
-    mutationFn: registerUser,
+    mutationFn: async ({ name, email, password }) => {
+      const response = await apiClient.post('/auth/register', { name, email, password });
+      return response.data;
+    },
     onSuccess: (data) => {
       setToken(data.token);
       navigate('/dashboard');
@@ -38,123 +51,110 @@ const Register = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setError(''); 
+    setError('');
     mutation.mutate({ name, email, password });
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
-  };
-
   return (
-    <div className="min-h-screen bg-background-background-color flex items-center justify-center px-half-spacing">
-      <div className="w-full max-w-sm bg-background-color rounded-lg border border-border-color shadow-lg p-6">
-        
-        <h2 className="text-center text-2xl font-semibold text-text-color mb-4">
-          Create Your Account
-        </h2>
-
-        <button
-          onClick={handleGoogleLogin}
-          className="w-full flex items-center justify-center px-4 py-2 border border-border-color rounded-md bg-white hover:bg-background-alt-color transition-colors duration-200"
-        >
-          <FcGoogle className="mr-2 h-5 w-5" />
-          Continue with Google
-        </button>
-
-        <div className="flex items-center my-4">
-          <hr className="flex-grow border-border-color" />
-          <span className="mx-2 text-gray-500 text-sm">OR</span>
-          <hr className="flex-grow border-border-color" />
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="relative">
-            <label htmlFor="name" className="block text-sm font-medium text-text-color">
-              Full Name
-            </label>
-            <div className="mt-1 relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <HiOutlineUser className="h-5 w-5 text-gray-400" aria-hidden="true" />
-              </div>
-              <input
-                type="text"
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                maxLength="50"
-                className="block w-full pl-10 pr-4 py-2 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-link-color focus:border-link-color transition-colors duration-200 text-gray-700"
-                placeholder="John Doe"
-              />
-            </div>
+    <div className="min-h-screen flex items-center justify-center p-6 bg-background-color">
+      <div className="w-full max-w-lg">
+        <div className="bg-background-alt-color/30 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden p-8">
+          <div className="text-center mb-8">
+            <h2 className="text-4xl font-bold text-text-color mb-2">Create Account</h2>
+            <p className="text-text-alt-color">Get started with your account</p>
           </div>
-
-          <div className="relative">
-            <label htmlFor="email" className="block text-sm font-medium text-text-color">
-              Email Address
-            </label>
-            <div className="mt-1 relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <HiOutlineMail className="h-5 w-5 text-gray-400" aria-hidden="true" />
-              </div>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="off"
-                className="block w-full pl-10 pr-4 py-2 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-link-color focus:border-link-color transition-colors duration-200 text-gray-700"
-                placeholder="you@example.com"
-              />
-            </div>
-          </div>
-
-          <div className="relative">
-            <label htmlFor="password" className="block text-sm font-medium text-text-color">
-              Password
-            </label>
-            <div className="mt-1 relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <HiOutlineLockClosed className="h-5 w-5 text-gray-400" aria-hidden="true" />
-              </div>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength="8"
-                autoComplete="new-password"
-                className="block w-full pl-10 pr-4 py-2 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-link-color focus:border-link-color transition-colors duration-200 text-gray-700"
-                placeholder="••••••••"
-              />
-            </div>
-          </div>
-
-          {error && <p className="text-red-500 text-sm">{error}</p>}
 
           <button
-            type="submit"
-            disabled={mutation.isLoading}
-            className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-full text-sm font-medium text-background-color ${
-              mutation.isLoading
-                ? 'bg-link-color cursor-not-allowed'
-                : 'bg-link-color hover:bg-opacity-90 transition-opacity duration-300'
-            } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-link-color`}
+            onClick={() => window.location.href = `${baseURL}/auth/google`}
+            className={`${buttonClasses} bg-white text-gray-800 border border-gray-200 hover:bg-gray-50 mb-6`}
+            aria-label="Continue with Google"
           >
-            {mutation.isLoading ? 'Registering...' : 'Register'}
+            <FcGoogle className="w-5 h-5 mr-3" aria-hidden="true" />
+            Continue with Google
           </button>
-        </form>
 
-        <p className="mt-4 text-center text-sm text-text-alt-color">
-          Already have an account?{' '}
-          <Link to="/login" className="text-link-color hover:underline font-medium">
-            Login here
-          </Link>
-          .
-        </p>
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border-alt-color"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 text-text-alt-color bg-background-alt-color">or continue with email</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+
+            <div>
+              <div className="relative">
+                <HiOutlineUser className="absolute left-3.5 top-3.5 h-5 w-5 text-text-alt-color" aria-hidden="true" />
+                <input
+                  type="text"
+                  placeholder="Full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className={inputClasses}
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className="relative">
+                <HiOutlineMail className="absolute left-3.5 top-3.5 h-5 w-5 text-text-alt-color" aria-hidden="true" />
+                <input
+                  type="email"
+                  placeholder="Email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={inputClasses}
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className="relative">
+                <HiOutlineLockClosed className="absolute left-3.5 top-3.5 h-5 w-5 text-text-alt-color" aria-hidden="true" />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={inputClasses}
+                  required
+                />
+              </div>
+            </div>
+
+            {error && (
+              <div className="py-2 px-4 bg-red-500 bg-opacity-10 border border-red-500 rounded-xl">
+                <p className="text-red-500 text-sm">{error}</p>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={mutation.isLoading}
+              className={`${buttonClasses} bg-link-color text-white hover:bg-opacity-90`}
+            >
+              {mutation.isLoading ? (
+                <div className="flex items-center">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Creating account...
+                </div>
+              ) : (
+                'Create account'
+              )}
+            </button>
+          </form>
+
+          <p className="mt-8 text-center text-sm text-text-alt-color">
+            Already have an account?{' '}
+            <Link to="/login" className="font-medium text-background-alt2-color hover:text-opacity-90">
+              Sign in
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -1,133 +1,247 @@
-import { useQuery } from '@tanstack/react-query';
-import { fetchEvents, fetchEventsStaff } from '../api/eventApi';
-import { Link, useNavigate } from 'react-router-dom';
-import useAuthStore from '../store/authStore';
-import { FaEdit, FaTrash } from 'react-icons/fa'; 
+import { useState, useEffect } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { createEvent, updateEvent, fetchEventByIdStaff } from '../api/eventApi';
+import { useNavigate, Link } from 'react-router-dom';
+import { 
+  IoCalendarOutline,
+  IoLocationOutline,
+  IoImageOutline,
+  IoTextOutline,
+  IoChevronBackOutline
+} from "react-icons/io5";
 
-const EventList = () => {
-  const { user, isAuthenticated } = useAuthStore();
+// eslint-disable-next-line react/prop-types
+const EventForm = ({ eventId }) => {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    date: '',
+    location: '',
+    img: ''
+  });
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const fetchEventsFunction = isAuthenticated && user.is_staff ? fetchEventsStaff : fetchEvents;
+  useEffect(() => {
+    if (eventId) {
+      const fetchEvent = async () => {
+        try {
+          const event = await fetchEventByIdStaff(eventId);
+          setFormData({
+            title: event.title,
+            description: event.description,
+            date: event.date.slice(0, 16),
+            location: event.location,
+            img: event.img || ''
+          });
+        } catch (error) {
+          console.error('Error fetching event:', error);
+          setError('Failed to fetch event details.');
+        }
+      };
 
-  const { data: events, isLoading, isError } = useQuery({
-    queryKey: ['events', isAuthenticated && user.is_staff],
-    queryFn: fetchEventsFunction,
+      fetchEvent();
+    }
+  }, [eventId]);
+
+  const createMutation = useMutation({
+    mutationFn: (eventData) => createEvent(eventData),
+    onSuccess: () => {
+      setSuccess('Event created successfully.');
+      setTimeout(() => navigate('/dashboard'), 1500);
+    },
+    onError: (error) => {
+      console.error('Error creating event:', error);
+      setError(error.response?.data?.message || 'Failed to create event. Please try again.');
+    },
   });
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this event?")) return;
+  const updateMutation = useMutation({
+    mutationFn: (eventData) => updateEvent(eventId, eventData),
+    onSuccess: () => {
+      setSuccess('Event updated successfully.');
+      setTimeout(() => navigate('/dashboard'), 1500);
+    },
+    onError: (error) => {
+      console.error('Error updating event:', error);
+      setError(error.response?.data?.message || 'Failed to update event. Please try again.');
+    },
+  });
 
-    try {
-      await fetch(`${import.meta.env.VITE_API_URL}/api/dashboard/events/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${user.token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
 
-      alert('Event deleted successfully.');
-
-    } catch (error) {
-      console.error('Error deleting event:', error);
-      alert('Failed to delete event.');
+    if (eventId) {
+      updateMutation.mutate(formData);
+    } else {
+      createMutation.mutate(formData);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-gray-700 text-lg">Loading events...</p>
-      </div>
-    );
-  }
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
 
-  if (isError) {
+  if (createMutation.isLoading || updateMutation.isLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-red-500 text-lg">Error fetching events.</p>
+      <div className="min-h-screen flex justify-center items-center bg-background-color">
+        <div className="inline-flex items-center px-4 py-2 rounded-full bg-background-alt-color/30 backdrop-blur-sm">
+          <span className="flex h-2 w-2 relative">
+            <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-link-color opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-link-color"></span>
+          </span>
+          <span className="ml-3 text-sm font-medium text-text-color">
+            {eventId ? 'Updating event...' : 'Creating event...'}
+          </span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Events</h1>
-          {isAuthenticated && user.is_staff && (
-            <button
-              onClick={() => navigate('/create-event')}
-              className="mt-4 sm:mt-0 px-6 py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold rounded-md shadow-md hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Create New Event
-            </button>
-          )}
+    <section className="relative min-h-screen bg-background-color py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
+
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-link-color/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-background-alt2-color/5 rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="relative max-w-3xl mx-auto">
+        
+        <div className="mb-8">
+          <Link to="/dashboard" className="inline-flex items-center text-text-alt-color hover:text-link-color transition-colors">
+            <IoChevronBackOutline className="w-5 h-5 mr-2" aria-hidden="true" />
+            <span className="font-medium">Back to Dashboard</span>
+          </Link>
+          
+          <h1 className="mt-4 text-4xl font-bold text-center">
+            <span className="bg-gradient-to-r from-link-color to-background-alt2-color bg-clip-text text-transparent">
+              {eventId ? 'Edit Event' : 'Create Event'}
+            </span>
+          </h1>
         </div>
 
-        {events.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event) => (
-              <div key={event.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                {event.img ? (
-                  <img
-                    src={event.img}
-                    alt={event.title}
-                    className="w-full h-48 object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                    <span className="text-gray-500">No Image Available</span>
-                  </div>
-                )}
-
-                <div className="p-6">
-                  <h2 className="text-xl font-semibold text-gray-800">{event.title}</h2>
-                  <p className="mt-2 text-gray-600">{event.description.substring(0, 100)}{event.description.length > 100 && '...'}</p>
-                  <div className="mt-4">
-                    <p className="text-gray-700">
-                      <span className="font-semibold">Date:</span> {new Date(event.date).toLocaleString()}
-                    </p>
-                    <p className="text-gray-700">
-                      <span className="font-semibold">Location:</span> {event.location}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="px-6 pb-6 flex space-x-2">
-                  <Link to={`/events/${event.id}`} className="flex-1">
-                    <button className="w-full flex justify-center items-center px-4 py-2 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 text-white font-semibold rounded-md shadow-md hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                      View Details
-                    </button>
-                  </Link>
-                  {isAuthenticated && user.is_staff && (
-                    <>
-                      <Link to={`/edit-event/${event.id}`} className="flex-1">
-                        <button className="w-full flex justify-center items-center px-4 py-2 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-white font-semibold rounded-md shadow-md hover:from-yellow-500 hover:via-yellow-600 hover:to-yellow-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
-                          <FaEdit className="mr-2" />
-                          Edit
-                        </button>
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(event.id)}
-                        className="flex-1 w-full flex justify-center items-center px-4 py-2 bg-gradient-to-r from-red-500 via-red-600 to-red-700 text-white font-semibold rounded-md shadow-md hover:from-red-600 hover:via-red-700 hover:to-red-800 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                      >
-                        <FaTrash className="mr-2" />
-                        Delete
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            ))}
+        {success && (
+          <div className="mb-6 p-4 bg-green-500/10 backdrop-blur-sm rounded-2xl border border-green-500/20">
+            <p className="text-green-500 text-sm font-medium">{success}</p>
           </div>
-        ) : (
-          <p className="text-center text-gray-600">No events found.</p>
         )}
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-500/10 backdrop-blur-sm rounded-2xl border border-red-500/20">
+            <p className="text-red-500 text-sm font-medium">{error}</p>
+          </div>
+        )}
+
+        <div className="bg-background-alt-color/30 backdrop-blur-sm rounded-3xl border border-border-color/20 shadow-xl p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="title" className="block text-sm font-medium text-text-color mb-2">
+                <div className="flex items-center">
+                  <IoTextOutline className="w-5 h-5 mr-2 text-link-color" aria-hidden="true" />
+                  Event Title
+                </div>
+              </label>
+              <input
+                type="text"
+                id="title"
+                value={formData.title}
+                onChange={handleChange}
+                required
+                className="block w-full text-text-color px-4 py-3 border border-border-color/20 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-link-color focus:border-link-color transition-all duration-200 placeholder:text-text-alt-color bg-background-alt-color/30 backdrop-blur-sm"
+                placeholder="Enter event title"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="description" className="block text-sm font-medium text-text-color mb-2">
+                <div className="flex items-center">
+                  <IoTextOutline className="w-5 h-5 mr-2 text-link-color" aria-hidden="true" />
+                  Description
+                </div>
+              </label>
+              <textarea
+                id="description"
+                value={formData.description}
+                onChange={handleChange}
+                required
+                rows="6"
+                className="block w-full text-text-color px-4 py-3 border border-border-color/20 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-link-color focus:border-link-color transition-all duration-200 placeholder:text-text-alt-color bg-background-alt-color/30 backdrop-blur-sm"
+                placeholder="Enter event description"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="date" className="block text-sm font-medium text-text-color mb-2">
+                <div className="flex items-center">
+                  <IoCalendarOutline className="w-5 h-5 mr-2 text-link-color" aria-hidden="true" />
+                  Date and Time
+                </div>
+              </label>
+              <input
+                type="datetime-local"
+                id="date"
+                value={formData.date}
+                onChange={handleChange}
+                required
+                className="block w-full text-text-color px-4 py-3 border border-border-color/20 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-link-color focus:border-link-color transition-all duration-200 placeholder:text-text-alt-color bg-background-alt-color/30 backdrop-blur-sm"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="location" className="block text-sm font-medium text-text-color mb-2">
+                <div className="flex items-center">
+                  <IoLocationOutline className="w-5 h-5 mr-2 text-link-color" aria-hidden="true" />
+                  Location
+                </div>
+              </label>
+              <input
+                type="text"
+                id="location"
+                value={formData.location}
+                onChange={handleChange}
+                required
+                className="block w-full text-text-color px-4 py-3 border border-border-color/20 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-link-color focus:border-link-color transition-all duration-200 placeholder:text-text-alt-color bg-background-alt-color/30 backdrop-blur-sm"
+                placeholder="Enter event location"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="img" className="block text-sm font-medium text-text-color mb-2">
+                <div className="flex items-center">
+                  <IoImageOutline className="w-5 h-5 mr-2 text-link-color" aria-hidden="true" />
+                  Image URL (Optional)
+                </div>
+              </label>
+              <input
+                type="url"
+                id="img"
+                value={formData.img}
+                onChange={handleChange}
+                className="block w-full text-text-color px-4 py-3 border border-border-color/20 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-link-color focus:border-link-color transition-all duration-200 placeholder:text-text-alt-color bg-background-alt-color/30 backdrop-blur-sm"
+                placeholder="https://example.com/image.jpg"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={createMutation.isLoading || updateMutation.isLoading}
+              className="w-full group flex items-center justify-center px-6 py-3 bg-link-color text-white font-semibold rounded-2xl shadow-lg shadow-link-color/25 hover:shadow-link-color/40 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-link-color"
+            >
+              {eventId ? 'Update Event' : 'Create Event'}
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
+    </section>
   );
 };
 
-export default EventList;
+export default EventForm;

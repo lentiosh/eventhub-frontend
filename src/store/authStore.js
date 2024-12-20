@@ -6,6 +6,8 @@ const userFromStorage = tokenFromStorage ? jwtDecode(tokenFromStorage) : null;
 
 const signedUpEventsMap = JSON.parse(localStorage.getItem('signedUpEventsMap') || '{}');
 
+const googleCalendarEventsMap = JSON.parse(localStorage.getItem('googleCalendarEventsMap') || '{}');
+
 const useAuthStore = create((set, get) => ({
   token: tokenFromStorage || null,
   isAuthenticated: !!tokenFromStorage,
@@ -15,6 +17,12 @@ const useAuthStore = create((set, get) => ({
     const { user } = get();
     if (!user || !user.id) return [];
     return signedUpEventsMap[user.id] || [];
+  },
+
+  get googleCalendarEvents() {
+    const { user } = get();
+    if (!user || !user.id) return [];
+    return googleCalendarEventsMap[user.id] || [];
   },
 
   setToken: (token) => {
@@ -47,6 +55,27 @@ const useAuthStore = create((set, get) => ({
     const userId = user.id;
     const existingEvents = signedUpEventsMap[userId] || [];
     return existingEvents.includes(eventId);
+  },
+
+  addGoogleCalendarEvent: (eventId) => {
+    const { user } = get();
+    if (!user || !user.id) return;
+
+    const userId = user.id;
+    const existingGoogleCalEvents = googleCalendarEventsMap[userId] || [];
+    if (!existingGoogleCalEvents.includes(eventId)) {
+      const updatedEvents = [...existingGoogleCalEvents, eventId];
+      googleCalendarEventsMap[userId] = updatedEvents;
+      localStorage.setItem('googleCalendarEventsMap', JSON.stringify(googleCalendarEventsMap));
+    }
+  },
+
+  isGoogleCalendarEventAdded: (eventId) => {
+    const { user } = get();
+    if (!user || !user.id) return false;
+    const userId = user.id;
+    const existingGoogleCalEvents = googleCalendarEventsMap[userId] || [];
+    return existingGoogleCalEvents.includes(eventId);
   },
 }));
 

@@ -10,8 +10,10 @@ import CreateEvent from './pages/CreateEvent';
 import EditEvent from './pages/EditEvent';
 import EventList from './pages/EventList'; 
 import EventDetails from './pages/EventDetails';
-import StaffRoute from './components/StaffRoute'; 
+import StaffRoute from './components/StaffRoute';
 import PrivacyPolicy from './components/PrivacyPolicy';
+import AboutUs from './components/AboutUs';
+import Contact from './components/Contact';
 
 const App = () => {
   return (
@@ -28,7 +30,8 @@ const App = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/auth/google" element={<GoogleCallback />} /> 
           <Route path="/privacy" element={<PrivacyPolicy />} />
-          
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/contact" element={<Contact />} />
           {/* Protected routes */}
           <Route element={<StaffRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />

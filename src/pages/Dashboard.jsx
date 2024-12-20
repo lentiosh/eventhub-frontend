@@ -1,111 +1,174 @@
-import { useEffect, useState } from 'react';
-import useAuthStore from '../store/authStore';
-import axios from 'axios';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaEdit, FaTrash } from 'react-icons/fa';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchEventsStaff, deleteEvent } from '../api/eventApi';
+import useAuthStore from '../store/authStore';
+import { 
+  IoCalendarOutline, 
+  IoLocationOutline,
+  IoAddCircleOutline,
+  IoPencilOutline,
+  IoTrashOutline
+} from "react-icons/io5";
 
 const Dashboard = () => {
-  const [events, setEvents] = useState([]);
-  const token = useAuthStore((state) => state.token);
+  const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
+  const [error, setError] = useState(''); 
+  const [success, setSuccess] = useState(''); 
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/dashboard/events`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setEvents(response.data.events);
-      } catch (error) {
-        console.error('Error fetching events:', error);
-        alert('Failed to fetch events. Please try again later.');
-      }
-    };
+  const {
+    data: events = [],
+    isLoading,
+  } = useQuery({
+    queryKey: ['eventsStaff'],
+    queryFn: fetchEventsStaff,
+    onError: (err) => {
+      console.error('Error fetching events:', err);
+      setError('Failed to fetch events. Please try again later.');
+    },
+  });
 
-    fetchEvents();
-  }, [token]);
+  const deleteMutation = useMutation({
+    mutationFn: deleteEvent,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['eventsStaff'] });
+      setSuccess('Event deleted successfully.');
+    },
+    onError: (err) => {
+      console.error('Error deleting event:', err);
+      setError('Failed to delete event. Please try again.');
+    },
+  });
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this event?")) return;
-
-    try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/dashboard/events/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      alert('Event deleted successfully.');
-      setEvents(events.filter(event => event.id !== id));
-    } catch (error) {
-      console.error('Error deleting event:', error);
-      alert('Failed to delete event.');
-    }
+  const handleDelete = (id) => {
+    const confirmed = window.confirm('Are you sure you want to delete this event?');
+    if (!confirmed) return;
+    deleteMutation.mutate(id);
   };
 
+  const sortedEvents = events.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-background-color">
+        <div className="inline-flex items-center px-4 py-2 rounded-full bg-background-alt-color/30 backdrop-blur-sm">
+          <span className="flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-link-color opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-link-color"></span>
+          </span>
+          <span className="ml-3 text-sm font-medium text-text-color">Loading dashboard...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
+    <section className="relative min-h-screen bg-background-color py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-link-color/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-background-alt2-color/5 rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="relative max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="mt-2 text-lg text-gray-600">Welcome, {user.name}</p>
+            <h1 className="text-4xl font-bold">
+              <span className="bg-gradient-to-r from-link-color to-background-alt2-color bg-clip-text text-transparent">
+                Dashboard
+              </span>
+            </h1>
+            <p className="mt-2 text-text-alt-color text-lg">Welcome back, {user.name}</p>
           </div>
-          <Link to="/create-event">
-            <button className="mt-4 sm:mt-0 px-6 py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold rounded-md shadow-md hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 transition-colors duration-300">
-              Create New Event
+          
+          <Link to="/create-event" className="mt-6 sm:mt-0">
+            <button className="group flex items-center px-6 py-3 bg-link-color text-white font-semibold rounded-2xl shadow-lg shadow-link-color/25 hover:shadow-link-color/40 transform hover:-translate-y-0.5 transition-all duration-200">
+              <IoAddCircleOutline className="w-5 h-5 mr-2 transition-transform group-hover:scale-110" />
+              Create Event
             </button>
           </Link>
         </div>
-        
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">All Events</h2>
-          {events.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {events.map((event) => (
-                <div key={event.id} className="bg-white rounded-lg shadow-md p-6">
-                  {event.img && (
+
+        {success && (
+          <div className="mb-6 p-4 bg-green-500/10 backdrop-blur-sm rounded-2xl border border-green-500/20">
+            <p className="text-green-500 text-sm font-medium">{success}</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-500/10 backdrop-blur-sm rounded-2xl border border-red-500/20">
+            <p className="text-red-500 text-sm font-medium">{error}</p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {sortedEvents.map((event) => (
+            <div
+              key={event.id}
+              className="group bg-background-alt-color/50 backdrop-blur-sm rounded-3xl overflow-hidden border border-border-color/20 shadow-xl"
+            >
+              <div className="relative">
+                {event.img ? (
+                  <div className="relative h-48">
                     <img
                       src={event.img}
                       alt={event.title}
-                      className="w-full h-48 object-cover rounded-md mb-4"
+                      className="w-full h-full object-cover"
                     />
-                  )}
-                  <h3 className="text-xl font-bold text-gray-900">{event.title}</h3>
-                  <p className="mt-2 text-gray-700">{event.description}</p>
-                  <p className="mt-2 text-gray-600">
-                    <span className="font-semibold">Date:</span>{' '}
-                    {new Date(event.date).toLocaleString()}
-                  </p>
-                  <p className="mt-1 text-gray-600">
-                    <span className="font-semibold">Location:</span> {event.location}
-                  </p>
-                  <div className="mt-4 flex space-x-2">
-                    <Link to={`/edit-event/${event.id}`}>
-                      <button className="flex items-center px-4 py-2 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-white font-semibold rounded-md shadow hover:from-yellow-500 hover:via-yellow-600 hover:to-yellow-700 transition-colors duration-300">
-                        <FaEdit className="mr-2" />
-                        Edit
-                      </button>
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(event.id)}
-                      className="flex items-center px-4 py-2 bg-gradient-to-r from-red-400 via-red-500 to-red-600 text-white font-semibold rounded-md shadow hover:from-red-500 hover:via-red-600 hover:to-red-700 transition-colors duration-300"
-                    >
-                      <FaTrash className="mr-2" />
-                      Delete
-                    </button>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                  </div>
+                ) : (
+                  <div className="h-48 bg-background-alt-color/50 flex items-center justify-center">
+                    <IoCalendarOutline className="w-12 h-12 text-text-alt-color/50" />
+                  </div>
+                )}
+              </div>
+
+              <div className="p-4">
+                <h3 className="text-lg font-bold text-text-color group-hover:text-link-color transition-colors line-clamp-1">
+                  {event.title}
+                </h3>
+                
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center text-text-alt-color">
+                    <IoCalendarOutline className="w-4 h-4 mr-2 text-link-color flex-shrink-0" />
+                    <span className="text-sm truncate">
+                      {new Date(event.date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center text-text-alt-color">
+                    <IoLocationOutline className="w-4 h-4 mr-2 text-link-color flex-shrink-0" />
+                    <span className="text-sm truncate">{event.location}</span>
                   </div>
                 </div>
-              ))}
+
+                <div className="mt-4 flex gap-2">
+                  <Link to={`/edit-event/${event.id}`} className="flex-1">
+                    <button className="w-full group flex items-center justify-center px-4 py-2 bg-yellow-500/10 text-yellow-500 font-medium rounded-xl hover:bg-yellow-500/20 transition-colors">
+                      <IoPencilOutline className="w-4 h-4 mr-2" />
+                      Edit
+                    </button>
+                  </Link>
+                  
+                  <button
+                    onClick={() => handleDelete(event.id)}
+                    className="flex-1 group flex items-center justify-center px-4 py-2 bg-red-500/10 text-red-500 font-medium rounded-xl hover:bg-red-500/20 transition-colors"
+                  >
+                    <IoTrashOutline className="w-4 h-4 mr-2" />
+                    Delete
+                  </button>
+                </div>
+              </div>
             </div>
-          ) : (
-            <p className="text-gray-600">No events found. Start by creating a new event!</p>
-          )}
+          ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
