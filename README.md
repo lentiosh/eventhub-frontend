@@ -18,6 +18,10 @@
     - [Available Scripts](#available-scripts)
     - [Navigating the App](#navigating-the-app)
     - [Adding Events to Google Calendar](#adding-events-to-google-calendar)
+    - [Testing Users and Admin Accounts](#testing-users-and-admin-accounts)
+      - [User Account](#user-account)
+      - [Admin Account](#admin-account)
+      - [Adding Events to Google Calendar](#adding-events-to-google-calendar-1)
   - [License](#license)
   - [Contact](#contact)
 
@@ -106,6 +110,31 @@ In the project directory, you can run:
 
 1. Navigate to the event you wish to add.
 2. Click on the "Add to Google Calendar" button.
+
+### Testing Users and Admin Accounts
+
+To facilitate testing of various features within EventHub, you can use the following test accounts:
+
+#### User Account
+
+- **Email**: `eventhubtestuser@gmail.com`
+- **Password**: `eventhub12345`
+
+#### Admin Account
+
+- **Email**: `admin@eventhub.com`
+- **Password**: `@Admin1094`
+
+#### Adding Events to Google Calendar
+
+Follow these steps to add events to Google Calendar:
+
+1. **Navigate to the Event**:
+   - Go to the event you wish to add within the EventHub platform.
+2. **Add to Google Calendar**:
+   - Click on the **"Add to Google Calendar"** button.
+   - You may be prompted to sign in to your Google account if you aren't already authenticated.
+   - Follow the on-screen instructions to complete the addition of the event to your Google Calendar.
 
 ## License
 

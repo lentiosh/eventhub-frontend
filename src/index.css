@@ -7,3 +7,21 @@ body {
   font-optical-sizing: auto;
   background-color: #272325;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ping,
+  .animate-spin {
+    animation: none;
+  }
+  .transition-all,
+  .transition-colors,
+  .transition-transform,
+  .hover\:scale-opacity-90:hover,
+  .hover\:scale-110:hover,
+  .hover\:bg-opacity-90:hover {
+    transition: none;
+  }
+  .transform {
+    transform: none;
+  }
+}

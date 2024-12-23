@@ -68,71 +68,100 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-background-color text-text-color">
-      <div className="w-full max-w-4xl bg-background-alt-color/30 backdrop-blur-sm border border-border-color/20 rounded-3xl shadow-xl p-8 space-y-8">
+
+      <main id="main-content" className="w-full max-w-4xl bg-background-alt-color/30 backdrop-blur-sm border border-border-color/20 rounded-3xl shadow-xl p-8 space-y-8">
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-2">Contact Us</h1>
-          <p className="text-text-alt-color">We would love to hear from you! Whether you have a question, feedback, or need support, feel free to reach out.</p>
+          <p className="text-text-alt-color">
+            We would love to hear from you! Whether you have a question, feedback, or need support, feel free to reach out.
+          </p>
         </div>
 
         {success && (
-          <div className="py-3 px-4 bg-green-500 bg-opacity-10 border border-green-500 rounded-xl">
+          <div
+            className="py-3 px-4 bg-green-500 bg-opacity-10 border border-green-500 rounded-xl"
+            role="status"
+            aria-live="polite"
+          >
             <p className="text-green-500 text-sm">{success}</p>
           </div>
         )}
 
         {error && (
-          <div className="py-3 px-4 bg-red-500 bg-opacity-10 border border-red-500 rounded-xl">
+          <div
+            className="py-3 px-4 bg-red-500 bg-opacity-10 border border-red-500 rounded-xl"
+            role="alert"
+            aria-live="assertive"
+          >
             <p className="text-red-500 text-sm">{error}</p>
           </div>
         )}
 
-        {/* Contact Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6" aria-labelledby="contact-form-heading">
+          <h2 id="contact-form-heading" className="sr-only">Contact Form</h2>
+
+          {/* Full Name Field */}
           <div className="relative">
+            <label htmlFor="name" className="sr-only">Full Name</label>
             <HiOutlineUser className="absolute left-3.5 top-3.5 h-5 w-5 text-text-alt-color" aria-hidden="true" />
             <input
               type="text"
+              id="name"
+              name="name"
               placeholder="Full Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className={inputClasses}
               required
+              aria-required="true"
             />
           </div>
 
           <div className="relative">
+            <label htmlFor="email" className="sr-only">Email Address</label>
             <HiOutlineMail className="absolute left-3.5 top-3.5 h-5 w-5 text-text-alt-color" aria-hidden="true" />
             <input
               type="email"
+              id="email"
+              name="email"
               placeholder="Email Address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className={inputClasses}
               required
+              aria-required="true"
             />
           </div>
 
           <div className="relative">
+            <label htmlFor="subject" className="sr-only">Subject</label>
             <HiOutlineChat className="absolute left-3.5 top-3.5 h-5 w-5 text-text-alt-color" aria-hidden="true" />
             <input
               type="text"
+              id="subject"
+              name="subject"
               placeholder="Subject"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               className={inputClasses}
               required
+              aria-required="true"
             />
           </div>
 
           <div className="relative">
+            <label htmlFor="message" className="sr-only">Your Message</label>
             <HiOutlineChat className="absolute left-3.5 top-3.5 h-5 w-5 text-text-alt-color" aria-hidden="true" />
             <textarea
+              id="message"
+              name="message"
               placeholder="Your Message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               className={textareaClasses}
               rows="6"
               required
+              aria-required="true"
             ></textarea>
           </div>
 
@@ -140,10 +169,11 @@ const Contact = () => {
             type="submit"
             disabled={mutation.isLoading}
             className={`${buttonClasses} bg-link-color text-white hover:bg-opacity-90 flex items-center justify-center`}
+            aria-label="Send Message"
           >
             {mutation.isLoading ? (
               <div className="flex items-center">
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" aria-hidden="true"></div>
                 Sending...
               </div>
             ) : (
@@ -154,10 +184,9 @@ const Contact = () => {
             )}
           </button>
         </form>
+      </main>
+    </div>
+  );
+};
 
-          </div>
-        </div>
-      );
-    };
-
-    export default Contact;
+export default Contact;

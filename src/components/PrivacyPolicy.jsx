@@ -1,8 +1,11 @@
+import { Link } from 'react-router-dom';
+
 const PrivacyPolicy = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-background-color">
-      <div className="max-w-3xl w-full bg-background-alt-color/30 backdrop-blur-sm border border-border-color/20 rounded-3xl shadow-xl p-8 space-y-6">
-        <h1 className="text-4xl font-bold text-text-color mb-4">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-background-color text-text-color">
+      <main className="max-w-3xl w-full bg-background-alt-color/30 backdrop-blur-sm border border-border-color/20 rounded-3xl shadow-xl p-8 space-y-6" aria-labelledby="privacy-policy-heading">
+
+        <h1 id="privacy-policy-heading" className="text-4xl font-bold text-text-color mb-4">
           Privacy Policy
         </h1>
 
@@ -10,7 +13,7 @@ const PrivacyPolicy = () => {
           Last updated: 16/12/2024
         </p>
 
-        <section>
+        <section id="privacy-policy-content">
           <h2 className="text-2xl font-semibold text-text-color mt-8">
             Introduction
           </h2>
@@ -61,7 +64,7 @@ const PrivacyPolicy = () => {
             Google OAuth
           </h2>
           <p className="text-text-alt-color text-base mt-2">
-            Our Application may use Google OAuth for user authentication. By using Google OAuth, you agree to Google s Privacy Policy. We only access your basic profile information and email address for account creation and login purposes. We do not store or use your data beyond what is necessary to provide our services.
+            Our Application may use Google OAuth for user authentication. By using Google OAuth, you agree to Google s <Link to="/google-privacy" className="text-link-color hover:underline">Privacy Policy</Link>. We only access your basic profile information and email address for account creation and login purposes. We do not store or use your data beyond what is necessary to provide our services.
           </p>
         </section>
 
@@ -98,12 +101,12 @@ const PrivacyPolicy = () => {
           </h2>
           <p className="text-text-alt-color text-base mt-2">
             If you have any questions or concerns about this Privacy Policy, please contact us at:{' '}
-            <a href="mailto:support@youreventapp.com" className="text-link-color hover:underline ml-1">
-            support@eventhub.com
+            <a href="mailto:support@eventhub.com" className="text-link-color hover:underline ml-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-link-color">
+              support@eventhub.com
             </a>
           </p>
         </section>
-      </div>
+      </main>
     </div>
   );
 };
