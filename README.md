@@ -22,6 +22,7 @@
       - [User Account](#user-account)
       - [Admin Account](#admin-account)
       - [Adding Events to Google Calendar](#adding-events-to-google-calendar-1)
+  - [🎥 Video Demo](#-video-demo)
   - [License](#license)
   - [Contact](#contact)
 
@@ -135,6 +136,12 @@ Follow these steps to add events to Google Calendar:
    - Click on the **"Add to Google Calendar"** button.
    - You may be prompted to sign in to your Google account if you aren't already authenticated.
    - Follow the on-screen instructions to complete the addition of the event to your Google Calendar.
+
+## 🎥 Video Demo
+
+[![EventHub Demo](https://img.youtube.com/vi/RFo-aCJRPCk/0.jpg)](https://youtu.be/RFo-aCJRPCk)  
+🔊 *Watch our demo on YouTube!*
+
 
 ## License
 
